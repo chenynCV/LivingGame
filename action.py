@@ -1,3 +1,13 @@
-class Action(object):
-    def __init__(self):
-        pass
+from enum import Enum, auto
+
+
+class Action(Enum):
+    Nothing = auto()
+
+    MoveUp = auto()
+    MoveDown = auto()
+    MoveLeft = auto()
+    MoveRight = auto()
+
+    Pick = auto()
+    Drop = auto()

@@ -1,19 +1,35 @@
 import numpy as np
+from observation import Observation
+from action import Action
+
 
 class Agent(object):
-    def __init__(self, space):
-        self.life = 1
-        self.belief = None
-        self.pos = self.init(space)
+    def __init__(self, entropy=10):
+        self.entropy = entropy
+        self.avilableObservation = list(Observation)
+        self.avilableAction = list(Action)
+        self.belief = self.initBelief()
 
-    def init(self, space):
-        N = space.size[0]
-        pos = np.random.randint(0, N, size=2)
-        return pos
+    def initBelief(self):
+        self.weight = np.random.rand(
+            len(self.avilableObservation), len(self.avilableAction))
 
     def forward(self, x):
-        pass
+        O = np.zeros((1, len(self.avilableObservation)))
+        for i, observ in enumerate(self.avilableObservation):
+            if observ in x:
+                O[0, i] = 1
+        A = np.clip(O @ self.weight, 1e-10, 1e10)
+        A = A.reshape(-1)/np.sum(A)
+        a = np.random.choice(self.avilableAction, p=A.reshape(-1))
+        return a
 
     def backward(self):
         pass
- 
+
+
+if __name__ == '__main__':
+    agent = Agent()
+    x = [Observation.Resources]
+    action = agent.forward(x)
+    print(action)
