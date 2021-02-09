@@ -11,15 +11,16 @@ class Agent(object):
         self.belief = self.initBelief()
 
     def initBelief(self):
-        self.weight = np.random.rand(
+        belief = np.random.rand(
             len(self.avilableObservation), len(self.avilableAction))
+        return belief
 
     def forward(self, x):
         O = np.zeros((1, len(self.avilableObservation)))
         for i, observ in enumerate(self.avilableObservation):
             if observ in x:
                 O[0, i] = 1
-        A = np.clip(O @ self.weight, 1e-10, 1e10)
+        A = np.clip(O @ self.belief, 1e-10, 1e10)
         A = A.reshape(-1)/np.sum(A)
         a = np.random.choice(self.avilableAction, p=A.reshape(-1))
         return a

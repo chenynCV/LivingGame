@@ -1,16 +1,31 @@
 from agent import Agent
 from planet import Planet
 from rule import Rule
+from render import plotAgentBelief
 
 
 def main():
-    rule = Rule(planet=Planet(Resources=1e6, N=100))
-    rule.agents = [Agent() for _ in range(10)]
+    survivors = []
 
-    for cnt in range(100000):
-        rule.tick()
-        if cnt % 10000 == 0:
-            print("{}: {} living!".format(cnt, len(rule.agents)))
+    for _ in range(3):
+        agents = [Agent() for _ in range(10)]
+        rule = Rule(planet=Planet(Resources=1e3, N=10), agents=agents)
+        for cnt in range(1000):
+            rule.tick(viz=True)
+            if len(rule.agents) <= 1:
+                if len(rule.agents) > 0:
+                    survivors.append(rule.agents[0])
+                print("Age: {}, Entropy: {}!".format(
+                    rule.agents[0].age, rule.agents[0].entropy))
+                break
+
+    maxAge = 0
+    oldestAgent = None
+    for agent in survivors:
+        if agent.age > maxAge:
+            maxAge = agent.age
+            oldestAgent = agent
+    plotAgentBelief(oldestAgent)
 
 
 if __name__ == '__main__':

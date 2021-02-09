@@ -7,7 +7,7 @@ class Planet(object):
 
     def init(self, Resources, N):
         state = np.random.rand(N, N)
-        state = state*Resources/np.sum(state, axis=None)
+        state = Resources*state/np.sum(state, axis=None)
         state = np.asarray(state, np.int)
         return state
 
