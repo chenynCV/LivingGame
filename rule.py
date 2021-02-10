@@ -52,7 +52,15 @@ class Rule(object):
     def observe(self, h, w):
         observations = []
         if self.planet.resourceAvilable(h, w):
-            observations.append(Observation.Resources)
+            observations.append(Observation.Resource)
+        if self.planet.resourceAvilable(h-1, w):
+            observations.append(Observation.ResourceUp)
+        if self.planet.resourceAvilable(h+1, w):
+            observations.append(Observation.ResourceDown)
+        if self.planet.resourceAvilable(h, w-1):
+            observations.append(Observation.ResourceLeft)
+        if self.planet.resourceAvilable(h, w+1):
+            observations.append(Observation.ResourceRight)
         if self.existAgent(h-1, w):
             observations.append(Observation.AgentUp)
         if self.existAgent(h+1, w):

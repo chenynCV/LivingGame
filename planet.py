@@ -26,15 +26,18 @@ class Planet(object):
             return False
 
     def resourceAvilable(self, h, w):
-        return self.state[h][w] > 0
+        if self.inPlanet(h, w):
+            return self.state[h][w] > 0
+        else:
+            return False
 
-    def decrease(self, h, w):
-        if self.state[h][w] >= 1:
-            self.state[h][w] -= 1
-            return 1
+    def decrease(self, h, w, v=1):
+        if self.state[h][w] >= v:
+            self.state[h][w] -= v
+            return v
         else:
             return 0
 
-    def increase(self, h, w):
-        self.state[h][w] += 1
+    def increase(self, h, w, v=1):
+        self.state[h][w] += v
         return self

@@ -2,7 +2,13 @@ from enum import Enum, auto
 
 
 class Observation(Enum):
-    Resources = auto()
+    Nothing = auto()
+
+    Resource = auto()
+    ResourceUp = auto()
+    ResourceDown = auto()
+    ResourceLeft = auto()
+    ResourceRight = auto()
 
     AgentUp = auto()
     AgentDown = auto()
