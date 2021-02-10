@@ -2,8 +2,6 @@ from enum import Enum, auto
 
 
 class Observation(Enum):
-    Nothing = auto()
-
     Resource = auto()
     ResourceUp = auto()
     ResourceDown = auto()

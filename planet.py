@@ -2,14 +2,10 @@ import numpy as np
 
 
 class Planet(object):
-    def __init__(self, Resources=1e9, N=10):
-        self.state = self.init(Resources, N)
-
-    def init(self, Resources, N):
-        state = np.random.rand(N, N)
+    def __init__(self, Resources=1e9, N=10, a=0.1, b=0.9):
+        state = np.random.beta(a, b, size=(N, N))
         state = Resources*state/np.sum(state, axis=None)
-        state = np.asarray(state, np.int)
-        return state
+        self.state = state
 
     @property
     def width(self):
@@ -25,9 +21,9 @@ class Planet(object):
         else:
             return False
 
-    def resourceAvilable(self, h, w):
+    def resourceAvilable(self, h, w, v=1):
         if self.inPlanet(h, w):
-            return self.state[h][w] > 0
+            return self.state[h][w] >= v
         else:
             return False
 

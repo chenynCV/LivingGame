@@ -8,11 +8,15 @@ from render import Render
 class Rule(object):
     state = {}
 
-    def __init__(self, planet, agents, minEntropy=1):
-        self._minEntropy = minEntropy
+    def __init__(self, planet, agents, viz=True):
+        self._minEntropy = 1
+        self._invEntropy = 3
+        self.viz = viz
         self.planet = planet
         self.agents = [self.addAgent(agent) for agent in agents]
-        self.renderObj = Render()
+        self._agent = None
+        if viz:
+            self.renderObj = Render()
 
     def addAgent(self, agent):
         h = np.random.randint(0, self.planet.height)
@@ -51,15 +55,15 @@ class Rule(object):
 
     def observe(self, h, w):
         observations = []
-        if self.planet.resourceAvilable(h, w):
+        if self.planet.resourceAvilable(h, w, self._invEntropy):
             observations.append(Observation.Resource)
-        if self.planet.resourceAvilable(h-1, w):
+        if self.planet.resourceAvilable(h-1, w, self._invEntropy):
             observations.append(Observation.ResourceUp)
-        if self.planet.resourceAvilable(h+1, w):
+        if self.planet.resourceAvilable(h+1, w, self._invEntropy):
             observations.append(Observation.ResourceDown)
-        if self.planet.resourceAvilable(h, w-1):
+        if self.planet.resourceAvilable(h, w-1, self._invEntropy):
             observations.append(Observation.ResourceLeft)
-        if self.planet.resourceAvilable(h, w+1):
+        if self.planet.resourceAvilable(h, w+1, self._invEntropy):
             observations.append(Observation.ResourceRight)
         if self.existAgent(h-1, w):
             observations.append(Observation.AgentUp)
@@ -79,8 +83,10 @@ class Rule(object):
             observations.append(Observation.OutRight)
         return observations
 
-    def tick(self, viz=False):
+    def tick(self):
         n = len(self.agents)
+        if n == 1:
+            self._agent = self.agents[0]
         for i, agent in enumerate(reversed(self.agents)):
             agent.age += 1
             h, w = agent.h, agent.w
@@ -104,11 +110,11 @@ class Rule(object):
 
             # update agent
             agent.entropy -= 1
-            if self.planet.state[h][w] >= 3:
-                self.planet.state[h][w] -= 1
-                agent.entropy += 3
+            if self.planet.state[h][w] >= self._invEntropy:
+                self.planet.state[h][w] -= self._invEntropy
+                agent.entropy += self._invEntropy
             if agent.entropy < self._minEntropy:
                 del self.agents[n-i-1]
 
-        if viz:
+        if self.viz:
             self.renderObj.update(self.planet, self.agents)

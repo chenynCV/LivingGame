@@ -4,26 +4,46 @@ from action import Action
 
 
 class Agent(object):
-    def __init__(self, entropy=10):
+    def __init__(self, entropy=100, priorConfidence=1):
         self.entropy = entropy
-        self.avilableObservation = list(Observation)
-        self.avilableAction = list(Action)
-        self.belief = self.initBelief()
+        self.ObservSpace = {x: i for i, x in enumerate(Observation)}
+        self.ActionSpace = {x: i for i, x in enumerate(Action)}
+        self.belief = self.priorBelief(
+            self.initBelief(), confidence=priorConfidence)
+        self._observs = list(self.ObservSpace.keys())
+        self._actions = list(self.ActionSpace.keys())
 
     def initBelief(self):
-        belief = np.random.rand(
-            len(self.avilableObservation), len(self.avilableAction))
+        a = np.random.rand()
+        b = np.random.rand()
+        belief = np.random.beta(a, b, size=(
+            len(self.ObservSpace), len(self.ActionSpace)))
+        belief = np.clip(belief, 1e-3, 1e3)
+        belief /= np.sum(belief)
+        return belief
+
+    def priorBelief(self, belief, confidence=1):
+        belief[self.ObservSpace[Observation.Resource]
+               ][self.ActionSpace[Action.Nothing]] *= confidence
+        belief[self.ObservSpace[Observation.ResourceUp]
+               ][self.ActionSpace[Action.MoveUp]] *= confidence
+        belief[self.ObservSpace[Observation.ResourceDown]
+               ][self.ActionSpace[Action.MoveDown]] *= confidence
+        belief[self.ObservSpace[Observation.ResourceLeft]
+               ][self.ActionSpace[Action.MoveLeft]] *= confidence
+        belief[self.ObservSpace[Observation.ResourceRight]
+               ][self.ActionSpace[Action.MoveRight]] *= confidence
         return belief
 
     def forward(self, x):
-        O = np.zeros((1, len(self.avilableObservation)))
-        for i, observ in enumerate(self.avilableObservation):
-            if observ in x:
-                O[0, i] = 1
-        A = np.clip(O @ self.belief, 1e-10, 1e10)
-        A = A.reshape(-1)/np.sum(A)
-        a = np.random.choice(self.avilableAction, p=A.reshape(-1))
-        return a
+        observ = np.zeros((1, len(self.ObservSpace)))
+        for item in x:
+            observ[0, self.ObservSpace[item]] = 1
+        prob = observ @ self.belief
+        prob = np.clip(prob, 1e-3, 1e3).reshape(-1)
+        prob = prob/np.sum(prob)
+        action = np.random.choice(self._actions, p=prob)
+        return action
 
     def backward(self):
         pass
@@ -31,6 +51,6 @@ class Agent(object):
 
 if __name__ == '__main__':
     agent = Agent()
-    x = [Observation.Resources]
+    x = [Observation.Resource]
     action = agent.forward(x)
     print(action)
