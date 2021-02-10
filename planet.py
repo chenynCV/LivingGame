@@ -2,10 +2,10 @@ import numpy as np
 
 
 class Planet(object):
-    def __init__(self, Resources=1e9, N=10, a=0.1, b=0.9):
-        state = np.random.beta(a, b, size=(N, N))
+    def __init__(self, Resources=1e9, N=10):
+        state = np.random.rand(N, N) > 0.6
         state = Resources*state/np.sum(state, axis=None)
-        self.state = state
+        self.state = np.array(state, dtype=np.int)
 
     @property
     def width(self):
