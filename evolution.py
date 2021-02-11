@@ -4,8 +4,8 @@ from rule import Rule
 
 
 def main(args):
-    agents = [Agent() for _ in range(10)]
-    rule = Rule(planet=Planet(Resources=3000, N=10),
+    agents = [Agent(p=0.2) for _ in range(10)]
+    rule = Rule(planet=Planet(Resources=2000, N=10),
                 agents=agents, viz=args.viz)
     for age in range(1, args.max_age):
         rule.tick()

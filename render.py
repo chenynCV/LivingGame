@@ -30,14 +30,14 @@ class Render(object):
         ax.set_title("The winner's belief")
 
         # Plot the heatmap
-        im = ax.imshow(agent.belief, cmap="Purples")
+        im = ax.imshow(agent.belief, cmap="Oranges")
 
         # We want to show all ticks...
-        ax.set_xticks(np.arange(len(agent._actions)))
-        ax.set_yticks(np.arange(len(agent._observs)))
+        ax.set_xticks(np.arange(len(agent.actions)))
+        ax.set_yticks(np.arange(len(agent.observs)))
         # ... and label them with the respective list entries.
-        ax.set_xticklabels(agent._actions)
-        ax.set_yticklabels(agent._observs)
+        ax.set_xticklabels(agent.actions)
+        ax.set_yticklabels(agent.observs)
 
         # Rotate the tick labels and set their alignment.
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
@@ -51,7 +51,14 @@ class Render(object):
     def update(self, planet, agents, interval=0.01):
         if len(agents) > 0:
             self.plotPlanet(self.ax[0], planet, agents)
-            self.plotAgentBelief(self.ax[1], agents[0])
+
+            maxEntropy = 0
+            winnerAgent = None
+            for agent in agents:
+                if agent.entropy > maxEntropy:
+                    winnerAgent = agent
+                    maxEntropy = agent.entropy
+            self.plotAgentBelief(self.ax[1], winnerAgent)
         plt.pause(interval)
 
     def __del__(self):

@@ -94,6 +94,8 @@ class Rule(object):
             self.moveLeft(agent)
         if action == Action.MoveRight:
             self.moveRight(agent)
+        if action == Action.Create:
+            self.planet.increase(agent.h, agent.w, self._invEntropy)
 
         if self.planet.state[agent.h][agent.w] >= self._invEntropy:
             self.planet.state[agent.h][agent.w] -= self._invEntropy
