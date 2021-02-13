@@ -8,7 +8,7 @@ class Rule(object):
 
     def __init__(self, planet, agents, viz=True):
         self._minEntropy = 1
-        self._invEntropy = 5
+        self._invEntropy = 1
         self._periodEntropy = 1
         self.viz = viz
         self.planet = planet
@@ -51,21 +51,19 @@ class Rule(object):
         self.timeline += 1
         n = len(self.agents)
         for i, agent in enumerate(reversed(self.agents)):
-            if agent.entropy >= self.winAgent.entropy:
-                self.winAgent = agent
-
             observ, optimalAction = self.observe()
             action = agent.forward(observ)
             self.update(agent, action, optimalAction)
-            agent.backward(optimalAction)
+            agent.backward()
 
-            # erase
             if agent.entropy < self._minEntropy:
                 del self.agents[n-i-1]
-
-            # hybrid
-            if self.timeline > len(self.planet):
-                self.hybridMutation(p=0.5)
+            elif agent.entropy >= self.winAgent.entropy:
+                    self.winAgent = agent
+        
+        # hybrid
+        if self.timeline > len(self.planet):
+            self.hybridMutation(p=0.5)
 
         if self.viz:
             self.renderObj.update(self.agents)

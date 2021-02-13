@@ -55,7 +55,8 @@ class Agent(object):
             if optimalAction is not None:
                 self.belief[lastMask, optimalAction] += self.dtype(
                     lastProb.max() - lastProb[lastAction] + 1)
-        if np.max(self.belief) > 1e18:
+        if np.max(self.belief) > 1e12:
+            print('\nbelife shrink!\n')
             self.belief = np.right_shift(self.belief, 1)
         if np.min(self.belief) < 0:
             self.belief -= np.min(self.belief)
