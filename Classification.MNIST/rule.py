@@ -6,17 +6,16 @@ from config import config
 
 class Rule(object):
 
-    def __init__(self, planet, agents, viz=True):
+    def __init__(self, planet, agents):
         self._minEntropy = 1
         self._invEntropy = 1
         self._periodEntropy = 1
-        self.viz = viz
         self.planet = planet
         self.agents = [self.addAgent(agent) for agent in agents]
         self.winAgent = self.agents[0]
+        self.hybridPeriod = len(self.planet) // 10
         self.timeline = 0
-        if viz:
-            self.renderObj = Render()
+        self.renderObj = None
 
     def addAgent(self, agent):
         agent._ID = str(uuid.uuid4())
@@ -42,28 +41,29 @@ class Rule(object):
             agent.acc = self.moveAverage(agent.acc, 0)
 
     def hybridMutation(self, p=0.5):
-        for agent in self.agents:
-            if np.random.rand() > p:
-                agent.belief = np.right_shift(
-                    agent.belief + self.winAgent.belief, 1)
+        if self.timeline > 0 and (self.timeline % self.hybridPeriod) == 0:
+            for agent in self.agents:
+                if np.random.rand() > 1 - p:
+                    agent.belief = (agent.belief + self.winAgent.belief) / 2
 
-    def tick(self):
+    def tick(self, viz=False):
         self.timeline += 1
         n = len(self.agents)
         for i, agent in enumerate(reversed(self.agents)):
             observ, optimalAction = self.observe()
             action = agent.forward(observ)
             self.update(agent, action, optimalAction)
-            agent.backward()
+            agent.backward(optimalAction)
 
             if agent.entropy < self._minEntropy:
                 del self.agents[n-i-1]
             elif agent.entropy >= self.winAgent.entropy:
-                    self.winAgent = agent
-        
-        # hybrid
-        if self.timeline > len(self.planet):
-            self.hybridMutation(p=0.5)
+                self.winAgent = agent
 
-        if self.viz:
+        # hybrid
+        self.hybridMutation(p=0.5)
+
+        if viz:
+            if self.renderObj is None:
+                self.renderObj = Render()
             self.renderObj.update(self.agents)

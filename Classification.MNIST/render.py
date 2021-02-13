@@ -8,7 +8,7 @@ from config import config
 class Render(object):
 
     def __init__(self, fullScreen=False):
-        self.fig = plt.figure(constrained_layout=True)
+        self.fig = plt.figure(constrained_layout=True, figsize=[9.6, 7.2])
         gs = GridSpec(4, 4, figure=self.fig)
         self.axObserv = self.fig.add_subplot(gs[:, 0])
         self.axBelief = []
@@ -22,7 +22,7 @@ class Render(object):
 
     def plotObserv(self, ax, agent, title='Observation'):
         observation = agent.history[-1][1]
-        observation = observation[0, 1:].reshape(
+        observation = observation[1:].reshape(
             config.width, config.height, config.bits)
         observation = utils.bitsToarray(observation)
         ax.cla()
