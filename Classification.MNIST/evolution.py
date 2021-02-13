@@ -4,8 +4,8 @@ from rule import Rule
 
 
 def main(args):
-    agents = [Agent() for _ in range(10)]
-    rule = Rule(planet=Planet(), agents=agents, viz=args.viz)
+    agents = [Agent() for _ in range(3)]
+    rule = Rule(planet=Planet(split='val'), agents=agents, viz=args.viz)
     for age in range(1, args.max_age):
         rule.tick()
         if age % args.print_freq == 0:
@@ -18,7 +18,7 @@ def main(args):
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='Living Game')
-    parser.add_argument('--print-freq', default=10000,
+    parser.add_argument('--print-freq', default=100,
                         type=int, help='print frequency')
     parser.add_argument('--viz', default=False,
                         help='Visualization game progress')

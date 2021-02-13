@@ -22,7 +22,9 @@ class Render(object):
 
     def plotObserv(self, ax, agent, title='Observation'):
         observation = agent.history[-1][1]
-        observation = observation[0, 1:].reshape(config.width, config.height)
+        observation = observation[0, 1:].reshape(
+            config.width, config.height, config.bits)
+        observation = utils.bitsToarray(observation)
         ax.cla()
         ax.set_title(title)
         ax.imshow(observation, cmap='BuGn')
@@ -44,22 +46,22 @@ class Render(object):
                 ax.set_title('Digit ' + str(i-1))
                 subBelief = agent.belief[1:, i-1]
                 subBelief = subBelief.reshape(
-                    (config.width, config.height))
+                    config.width, config.height, config.bits)
                 subBelief = utils.bitsToarray(subBelief)
                 ax.imshow(subBelief, cmap="Oranges")
 
     def update(self, agents, interval=0.01):
         if len(agents) > 0:
             maxEntropy = 0
-            winnerAgent = None
+            winAgent = None
             for agent in agents:
                 if agent.entropy > maxEntropy:
-                    winnerAgent = agent
+                    winAgent = agent
                     maxEntropy = agent.entropy
             title = 'E: {}, Action: {}, Acc: {:.2f}'.format(
-                winnerAgent.entropy, winnerAgent.action, winnerAgent.acc)
-            self.plotObserv(self.axObserv, winnerAgent, title=title)
-            self.plotBelief(self.axBelief, winnerAgent)
+                winAgent.entropy, winAgent.action, winAgent.acc)
+            self.plotObserv(self.axObserv, winAgent, title=title)
+            self.plotBelief(self.axBelief, winAgent)
         plt.pause(interval)
 
     def __del__(self):
