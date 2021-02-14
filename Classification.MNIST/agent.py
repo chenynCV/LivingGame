@@ -18,14 +18,10 @@ class Agent(object):
         self.talent = talent
         self.historyLength = historyLength
 
-    def initBelief(self, random=False):
+    def initBelief(self):
         H = len(self.ObservSpace) + 1
         W = len(self.ActionSpace)
-        if random:
-            belief = np.array(np.random.randint(
-                0, 2, size=(H, W)), dtype=self.dtype)
-        else:
-            belief = np.array(np.zeros((H, W)), dtype=self.dtype)
+        belief = np.array(np.zeros((H, W)), dtype=self.dtype)
         return belief
 
     def initHistory(self, length):
@@ -72,13 +68,6 @@ class Agent(object):
         if np.min(self.belief) < 0:
             self.belief -= np.min(self.belief)
         self.updateHistory()
-
-    def refresh(self, belief):
-        self.age = 0
-        self.entropy = config.entropyBorn
-        self.belief = belief
-        self.beliefGrad = np.zeros_like(self.belief)
-        self.history = self.initHistory(self.historyLength)
 
 
 if __name__ == '__main__':

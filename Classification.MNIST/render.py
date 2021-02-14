@@ -50,18 +50,11 @@ class Render(object):
                 subBelief = utils.bitsToarray(subBelief)
                 ax.imshow(subBelief, cmap="Oranges")
 
-    def update(self, agents, interval=0.01):
-        if len(agents) > 0:
-            maxEntropy = 0
-            winAgent = None
-            for agent in agents:
-                if agent.entropy > maxEntropy:
-                    winAgent = agent
-                    maxEntropy = agent.entropy
-            title = 'E: {:.0f}, Age: {}, Action: {}, Acc: {:.2f}'.format(
-                winAgent.entropy, winAgent.age, winAgent.action, winAgent.acc.mean())
-            self.plotObserv(self.axObserv, winAgent, title=title)
-            self.plotBelief(self.axBelief, winAgent)
+    def update(self, agent, interval=0.01):
+        title = 'E: {:.0f}, Age: {}, Action: {}, Acc: {:.2f}'.format(
+            agent.entropy, agent.age, agent.action, agent.acc)
+        self.plotObserv(self.axObserv, agent, title=title)
+        self.plotBelief(self.axBelief, agent)
         plt.pause(interval)
 
     def __del__(self):

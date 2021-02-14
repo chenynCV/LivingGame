@@ -1,6 +1,7 @@
 import uuid
 import numpy as np
 from render import Render
+from agent import Agent
 from config import config
 
 
@@ -8,25 +9,29 @@ class Rule(object):
 
     def __init__(self, planet, agents):
         self._minEntropy = 1
-        self._invEntropy = 0.5
-        self._periodEntropy = 0.4
-        self.planet = planet
-        self.agents = [self.addAgent(agent) for agent in agents]
-        self.winAgent = self.agents[0]
-        self.hybridProp = 100 / len(self.planet)
+        self._invEntropy = 3
+        self._periodEntropy = 1
+        self.eraseProb = 0.001
         self.timeline = 0
         self.renderObj = None
+        self.planet = planet
+        self.agentNum = len(agents)
+        for agent in agents:
+            self.addAgent(agent)
 
     def addAgent(self, agent):
+        if not hasattr(self, 'agents'):
+            self.agents = []
         agent._ID = str(uuid.uuid4())
-        agent.acc = np.zeros(len(agent.ActionSpace))
-        return agent
+        agent.acc = 0
+        self.agents.append(agent)
+        return self
 
     def observe(self):
         observations = self.planet.fetch()
         return observations
 
-    def moveAverage(self, m, v, period=3*config.classNum):
+    def moveAverage(self, m, v, period=100*config.classNum):
         m = (m*(period-1)+v)/period
         return m
 
@@ -36,24 +41,24 @@ class Rule(object):
         reward = (action == optimalAction)
         if reward:
             agent.entropy += self._invEntropy
-            agent.acc[action] = self.moveAverage(agent.acc[action], 1)
+            agent.acc = self.moveAverage(agent.acc, 1)
         else:
-            agent.acc[action] = self.moveAverage(agent.acc[action], 0)
+            agent.acc = self.moveAverage(agent.acc, 0)
 
-    def hybridMutation(self, idx):
-        if self.agents[idx].entropy < self.winAgent.entropy and \
-                self.agents[idx].age > 1/self.hybridProp and \
-                self.winAgent.age > 1/self.hybridProp:
-            ageDiff = abs(self.agents[idx].age - self.winAgent.age)
-            if ageDiff*self.hybridProp < abs(np.random.normal()):
-                H, W = self.agents[idx].belief.shape
-                belief = np.where(np.random.rand(H, W) > 0.5,
-                                  self.agents[idx].belief, self.winAgent.belief)
-                self.agents[idx].refresh(
-                    belief / np.sum(belief) * H * W / self.hybridProp)
-                self.agents[idx].acc = (
-                    self.agents[idx].acc + self.winAgent.acc) / 2
-                print("hybrid!")
+    def hybrid(self, agentA, agentB):
+        agent = Agent()
+        for i in range(len(agent.ActionSpace)):
+            beliefA = agentA.belief[:, i] > np.median(agentA.belief[:, i])
+            beliefB = agentB.belief[:, i] > np.median(agentB.belief[:, i])
+            agent.belief[:, i] = agent.entropy * \
+                np.array(beliefA + beliefB, dtype=agent.dtype)
+        return agent
+
+    def sortAgents(self):
+        def _key(x):
+            return x.entropy
+        self.agents.sort(key=_key, reverse=True)
+        return self.agents
 
     def tick(self, viz=False):
         self.timeline += 1
@@ -64,16 +69,24 @@ class Rule(object):
             self.update(agent, action, optimalAction)
             agent.backward(optimalAction)
 
+            # erase dead
             if agent.entropy < self._minEntropy:
                 del self.agents[n-i-1]
-            elif agent.entropy >= self.winAgent.entropy:
-                self.winAgent = agent
-            else:
-                # hybrid
-                if np.random.rand() > 1 - self.hybridProp:
-                    self.hybridMutation(i)
 
-        if viz:
+        # sort according to entropy
+        self.sortAgents()
+
+        # hybrid or erase
+        if len(self.agents) < self.agentNum:
+            self.addAgent(self.hybrid(self.agents[0], self.agents[1]))
+        elif len(self.agents) > self.agentNum:
+            del self.agents[-1]
+        elif np.random.rand() > 1 - self.eraseProb:
+            idx = np.random.randint(0, len(self.agents))
+            del self.agents[idx]
+            self.addAgent(Agent())
+
+        if viz and len(self.agents) > 0:
             if self.renderObj is None:
                 self.renderObj = Render()
-            self.renderObj.update(self.agents)
+            self.renderObj.update(self.agents[0])
