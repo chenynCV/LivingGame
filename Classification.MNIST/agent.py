@@ -6,16 +6,17 @@ from config import config
 
 
 class Agent(object):
-    def __init__(self, entropy=100, talent=0.999, historyLength=3, dtype=np.float):
-        self.entropy = entropy
-        self.talent = talent
+    def __init__(self, talent=0.9, historyLength=3, dtype=np.float):
         self.dtype = dtype
         self.ObservSpace = Observation()
         self.ActionSpace = Action()
+        self.age = 0
+        self.entropy = config.entropyBorn
         self.belief = self.initBelief()
         self.beliefGrad = np.zeros_like(self.belief)
         self.history = self.initHistory(historyLength)
-        self.age = 0
+        self.talent = talent
+        self.historyLength = historyLength
 
     def initBelief(self, random=False):
         H = len(self.ObservSpace) + 1
@@ -31,7 +32,7 @@ class Agent(object):
         self.historyLength = length
         history = deque()
         for _ in range(length):
-            history.append((self.entropy, None, None, None))
+            history.append((self.entropy, None, None))
         return history
 
     def updateHistory(self, *wargs):
@@ -71,6 +72,13 @@ class Agent(object):
         if np.min(self.belief) < 0:
             self.belief -= np.min(self.belief)
         self.updateHistory()
+
+    def refresh(self, belief):
+        self.age = 0
+        self.entropy = config.entropyBorn
+        self.belief = belief
+        self.beliefGrad = np.zeros_like(self.belief)
+        self.history = self.initHistory(self.historyLength)
 
 
 if __name__ == '__main__':

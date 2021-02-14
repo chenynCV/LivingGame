@@ -58,8 +58,8 @@ class Render(object):
                 if agent.entropy > maxEntropy:
                     winAgent = agent
                     maxEntropy = agent.entropy
-            title = 'E: {}, Action: {}, Acc: {:.2f}'.format(
-                winAgent.entropy, winAgent.action, winAgent.acc)
+            title = 'E: {:.0f}, Age: {}, Action: {}, Acc: {:.2f}'.format(
+                winAgent.entropy, winAgent.age, winAgent.action, winAgent.acc.mean())
             self.plotObserv(self.axObserv, winAgent, title=title)
             self.plotBelief(self.axBelief, winAgent)
         plt.pause(interval)

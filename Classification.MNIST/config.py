@@ -8,5 +8,7 @@ class Config:
     classNum = 10
     bits = 8
 
+    entropyBorn = 100
+
 
 config = Config()
