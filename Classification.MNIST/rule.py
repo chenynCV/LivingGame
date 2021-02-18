@@ -11,7 +11,7 @@ class Rule(object):
         self._minEntropy = 1
         self._invEntropy = 3
         self._periodEntropy = 1
-        self.eraseProb = 0.001
+        self.eraseProb = 0.0001
         self.timeline = 0
         self.renderObj = None
         self.planet = planet
@@ -47,11 +47,7 @@ class Rule(object):
 
     def hybrid(self, agentA, agentB):
         agent = Agent()
-        for i in range(len(agent.ActionSpace)):
-            beliefA = agentA.belief[:, i] > np.median(agentA.belief[:, i])
-            beliefB = agentB.belief[:, i] > np.median(agentB.belief[:, i])
-            agent.belief[:, i] = agent.entropy * \
-                np.array(beliefA + beliefB, dtype=agent.dtype)
+        agent.belief = (agentA.belief + agentB.belief)/2
         return agent
 
     def sortAgents(self):
@@ -84,7 +80,6 @@ class Rule(object):
         elif np.random.rand() > 1 - self.eraseProb:
             idx = np.random.randint(0, len(self.agents))
             del self.agents[idx]
-            self.addAgent(Agent())
 
         if viz and len(self.agents) > 0:
             if self.renderObj is None:

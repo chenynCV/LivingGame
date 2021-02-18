@@ -33,7 +33,7 @@ class Render(object):
         ax = axs[0]
         ax.cla()
         ax.set_title('Prior')
-        ax.imshow(agent.belief[0:1, :], cmap="Oranges")
+        ax.imshow(agent.belief[0:1, :, 0], cmap="Oranges")
         ax.tick_params(labelleft=False)
         ax.set_xticks(np.arange(len(agent.ActionSpace)))
         ax.set_xticklabels(agent.ActionSpace)
@@ -44,7 +44,7 @@ class Render(object):
             ax.cla()
             if i-1 < agent.belief.shape[1]:
                 ax.set_title('Digit ' + str(i-1))
-                subBelief = agent.belief[1:, i-1]
+                subBelief = agent.belief[1:, i-1, 0]
                 subBelief = subBelief.reshape(
                     config.width, config.height, config.bits)
                 subBelief = utils.bitsToarray(subBelief)

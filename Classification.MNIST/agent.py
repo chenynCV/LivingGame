@@ -19,10 +19,17 @@ class Agent(object):
         self.historyLength = historyLength
 
     def initBelief(self):
-        H = len(self.ObservSpace) + 1
-        W = len(self.ActionSpace)
-        belief = np.array(np.zeros((H, W)), dtype=self.dtype)
+        belief = np.ones((self.height, self.width, 2))
+        belief = np.array(belief, dtype=self.dtype)
         return belief
+
+    @property
+    def width(self):
+        return len(self.ActionSpace)
+
+    @property
+    def height(self):
+        return len(self.ObservSpace) + 1
 
     def initHistory(self, length):
         self.historyLength = length
@@ -41,32 +48,27 @@ class Agent(object):
         self.age += 1
         mask = np.full(len(self.ObservSpace)+1, True, dtype=bool)
         mask[1:] = (observ.reshape(-1) > 0)
-        prob = np.zeros(len(self.ActionSpace))
-        for i in range(len(self.ActionSpace)):
-            prob[i] = np.sum(self.belief[mask, i])
-        idx = np.argmax(prob)
-        action = self.ActionSpace[idx]
+        prob = np.sum(self.belief[mask, :, :], axis=0)
+        prob = prob[:, 0] / (prob[:, 1] + 1)
+        index = np.argmax(prob)
+        action = self.ActionSpace[index]
+
+        # update history
         self.updateHistory((self.entropy, mask, action))
         return action
 
     def backward(self, optimalAction=None):
-        grad = np.zeros_like(self.belief)
         entropyNow = self.entropy
         entropyLast, maskLast, actionLast = self.history[-1]
+        grad = np.zeros_like(self.belief)
+        grad[maskLast, actionLast, 1] = 1
         if entropyLast <= entropyNow:
-            grad[maskLast, actionLast] = 1
-        else:
-            grad[maskLast, actionLast] = -1
-            if optimalAction is not None:
-                grad[maskLast, optimalAction] = 1
+            grad[maskLast, actionLast, 0] = 1
+        if optimalAction is not None:
+            grad[maskLast, optimalAction, 0] = 1
         self.beliefGrad = self.talent * \
             self.beliefGrad + (1-self.talent)*grad
         self.belief += self.beliefGrad
-        if np.max(self.belief) > 1e12:
-            print('\nbelife shrink!\n')
-            self.belief /= 2
-        if np.min(self.belief) < 0:
-            self.belief -= np.min(self.belief)
         self.updateHistory()
 
 
