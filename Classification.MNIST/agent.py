@@ -6,7 +6,7 @@ from config import config
 
 
 class Agent(object):
-    def __init__(self, talent=0.9, historyLength=3, dtype=np.float):
+    def __init__(self, talent=0.0, historyLength=10, sleepInterval=10000, dtype=np.float):
         self.dtype = dtype
         self.ObservSpace = Observation()
         self.ActionSpace = Action()
@@ -16,7 +16,7 @@ class Agent(object):
         self.beliefGrad = np.zeros_like(self.belief)
         self.history = self.initHistory(historyLength)
         self.talent = talent
-        self.historyLength = historyLength
+        self.sleepInterval = sleepInterval
 
     def initBelief(self):
         belief = np.ones((self.height, self.width, 2))
@@ -44,6 +44,11 @@ class Agent(object):
         else:
             return self.history.append(*wargs)
 
+    def sleep(self):
+        s = np.mean(self.belief, axis=0, keepdims=True)
+        self.belief = self.belief / s * np.mean(s)
+        return self
+
     def forward(self, observ):
         self.age += 1
         mask = np.full(len(self.ObservSpace)+1, True, dtype=bool)
@@ -52,23 +57,31 @@ class Agent(object):
         prob = prob[:, 0] / (prob[:, 1] + 1)
         index = np.argmax(prob)
         action = self.ActionSpace[index]
-
-        # update history
         self.updateHistory((self.entropy, mask, action))
         return action
 
     def backward(self, optimalAction=None):
         entropyNow = self.entropy
-        entropyLast, maskLast, actionLast = self.history[-1]
+        entropy, mask, action = self.history[-1]
         grad = np.zeros_like(self.belief)
-        grad[maskLast, actionLast, 1] = 1
-        if entropyLast <= entropyNow:
-            grad[maskLast, actionLast, 0] = 1
         if optimalAction is not None:
-            grad[maskLast, optimalAction, 0] = 1
+            if optimalAction != action:
+                grad[mask, optimalAction, 0] = 1
+                grad[mask, action, 1] = 1
+        elif entropy <= entropyNow:
+            for i in range(2, self.historyLength+1):
+                _entropy, _mask, _action = self.history[-i]
+                if entropy <= _entropy:
+                    grad[mask, action, 0] = 1
+                    grad[_mask, _action, 1] = 1
+                    break
+                entropy = _entropy
         self.beliefGrad = self.talent * \
             self.beliefGrad + (1-self.talent)*grad
         self.belief += self.beliefGrad
+
+        if self.age % self.sleepInterval == 0:
+            self.sleep()
         self.updateHistory()
 
 

@@ -11,7 +11,7 @@ class Rule(object):
         self._minEntropy = 1
         self._invEntropy = 3
         self._periodEntropy = 1
-        self.eraseProb = 0.0001
+        self.eraseProb = 0.0
         self.timeline = 0
         self.renderObj = None
         self.planet = planet
@@ -63,7 +63,7 @@ class Rule(object):
             observ, optimalAction = self.observe()
             action = agent.forward(observ)
             self.update(agent, action, optimalAction)
-            agent.backward(optimalAction)
+            agent.backward()
 
             # erase dead
             if agent.entropy < self._minEntropy:
