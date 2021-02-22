@@ -63,7 +63,7 @@ class Rule(object):
             observ, optimalAction = self.observe()
             action = agent.forward(observ)
             self.update(agent, action, optimalAction)
-            agent.backward()
+            agent.backward(optimalAction)
 
             # erase dead
             if agent.entropy < self._minEntropy:

@@ -6,7 +6,7 @@ from config import config
 
 
 class Agent(object):
-    def __init__(self, talent=0.0, historyLength=10, sleepInterval=10000, dtype=np.float):
+    def __init__(self, talent=0.0, historyLength=3, dtype=np.float):
         self.dtype = dtype
         self.ObservSpace = Observation()
         self.ActionSpace = Action()
@@ -16,7 +16,6 @@ class Agent(object):
         self.beliefGrad = np.zeros_like(self.belief)
         self.history = self.initHistory(historyLength)
         self.talent = talent
-        self.sleepInterval = sleepInterval
 
     def initBelief(self):
         belief = np.ones((self.height, self.width, 2))
@@ -43,11 +42,6 @@ class Agent(object):
             return self.history.popleft()
         else:
             return self.history.append(*wargs)
-
-    def sleep(self):
-        s = np.mean(self.belief, axis=0, keepdims=True)
-        self.belief = self.belief / s * np.mean(s)
-        return self
 
     def forward(self, observ):
         self.age += 1
@@ -79,9 +73,6 @@ class Agent(object):
         self.beliefGrad = self.talent * \
             self.beliefGrad + (1-self.talent)*grad
         self.belief += self.beliefGrad
-
-        if self.age % self.sleepInterval == 0:
-            self.sleep()
         self.updateHistory()
 
 
